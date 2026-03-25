@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Discipline Cut
 
-## Getting Started
+Personal weight loss accountability app built with:
 
-First, run the development server:
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Prisma with SQLite
+- Recharts
+
+## What it does
+
+- Tracks daily weight, calories, protein, steps, water, fasting hours, plan adherence, and night eating
+- Scores each day from 0-5 based on consistency
+- Shows a dashboard with today&apos;s score, streak, fast timer, weekly goal progress, and danger alerts
+- Visualizes weight and calorie trends
+- Summarizes the last 7 days with weekly review metrics and habit hit rates
+
+## Run it
+
+```bash
+npm install
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run lint
+npm run db:migrate
+npm run db:push
+npm run db:seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The app is single-user and does not include authentication.
+- Sample data is seeded into `prisma/dev.db`.
+- In this Node 25 environment, Prisma&apos;s schema engine was not reliably running `migrate` or `db push`, so `db:migrate` and `db:push` use `prisma/setup.ts` to initialize the SQLite schema while the app still uses Prisma Client for queries and mutations.
