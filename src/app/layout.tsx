@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   },
   description:
     "Shred Season is a private performance system for disciplined daily tracking, adherence, and weight-loss review.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
