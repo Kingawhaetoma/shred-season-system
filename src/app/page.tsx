@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DailyLogForm } from "@/components/DailyLogForm";
 import { FastTimer } from "@/components/FastTimer";
+import { MotivationBanner } from "@/components/MotivationBanner";
 import { ScorePill } from "@/components/ScorePill";
 import { GOAL_WEIGHT } from "@/lib/constants";
 import { getAllLogs } from "@/lib/data";
@@ -183,6 +184,8 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   return (
     <div className="space-y-7 lg:space-y-8">
+      <MotivationBanner />
+
       {params.saved ? (
         <section className="glass-card rounded-2xl border border-[var(--border)] px-6 py-5">
           <p className="type-eyebrow type-eyebrow-accent">
