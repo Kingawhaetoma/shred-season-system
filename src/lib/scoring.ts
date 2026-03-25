@@ -21,9 +21,11 @@ export type ScoreBreakdown = {
 
 export function getScoreBreakdown(log: ScoreSource): ScoreBreakdown {
   const caloriesInRange =
-    log.caloriesIn >= CALORIE_RANGE.min && log.caloriesIn <= CALORIE_RANGE.max;
-  const proteinHit = log.protein >= PROTEIN_GOAL;
-  const stepsHit = log.steps >= STEPS_GOAL;
+    log.caloriesIn !== null &&
+    log.caloriesIn >= CALORIE_RANGE.min &&
+    log.caloriesIn <= CALORIE_RANGE.max;
+  const proteinHit = log.protein !== null && log.protein >= PROTEIN_GOAL;
+  const stepsHit = log.steps !== null && log.steps >= STEPS_GOAL;
 
   const details = [
     { label: "Calories in range", met: caloriesInRange },

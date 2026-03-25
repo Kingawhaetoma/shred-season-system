@@ -14,8 +14,9 @@ type FieldProps = {
   type?: "number" | "date";
   step?: string;
   min?: string;
-  defaultValue?: string | number;
+  defaultValue?: string | number | null;
   suffix?: string;
+  required?: boolean;
 };
 
 function Field({
@@ -26,6 +27,7 @@ function Field({
   min,
   defaultValue,
   suffix,
+  required = false,
 }: FieldProps) {
   return (
     <label className="space-y-3">
@@ -39,8 +41,8 @@ function Field({
           type={type}
           step={step}
           min={min}
-          defaultValue={defaultValue}
-          required
+          defaultValue={defaultValue ?? undefined}
+          required={required}
           className="w-full rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-base text-[var(--foreground)] outline-none transition hover:border-[rgba(47,93,80,0.14)] focus:border-[var(--accent)] focus:bg-[var(--surface-strong)] focus:shadow-[0_0_0_3px_rgba(47,93,80,0.07)]"
         />
         {suffix ? (
@@ -62,19 +64,21 @@ export function DailyLogForm({
       <div className="space-y-5">
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <Field
-            id="date"
-            label="Log date"
-            type="date"
-            defaultValue={defaultValues?.date ?? getTodayKey()}
-          />
-          <Field
-            id="weight"
-            label="Weight"
-            step="0.1"
-            min="0"
-            defaultValue={defaultValues?.weight}
-            suffix="lb"
-          />
+          id="date"
+          label="Log date"
+          type="date"
+          defaultValue={defaultValues?.date ?? getTodayKey()}
+          required
+        />
+        <Field
+          id="weight"
+          label="Weight"
+          step="0.1"
+          min="0"
+          defaultValue={defaultValues?.weight}
+          suffix="lb"
+          required
+        />
           <Field
             id="caloriesIn"
             label="Calories In"
@@ -155,8 +159,8 @@ export function DailyLogForm({
             One entry per date
           </p>
           <p className="text-sm leading-6 text-[var(--secondary)]">
-            Logging the same date again updates that day&apos;s record. Net calories
-            are calculated automatically.
+            Only date and weight are required. Logging the same date again updates
+            that day&apos;s record.
           </p>
         </div>
         <SubmitButton label={submitLabel} />

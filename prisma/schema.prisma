@@ -16,12 +16,12 @@ model DailyLog {
   id             Int      @id @default(autoincrement())
   date           String   @unique
   weight         Float
-  caloriesIn     Int
-  caloriesOut    Int      @default(0)
-  protein        Int
-  steps          Int
-  water          Float
-  fastingHours   Float
+  caloriesIn     Int?
+  caloriesOut    Int?
+  protein        Int?
+  steps          Int?
+  water          Float?
+  fastingHours   Float?
   stayedOnPlan   Boolean  @default(false)
   noNightEating  Boolean  @default(false)
   isSample       Boolean  @default(false)

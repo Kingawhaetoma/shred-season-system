@@ -122,12 +122,16 @@ export default async function ReviewPage() {
                   <div className="hidden text-right sm:block">
                     <p className="text-sm text-[var(--foreground)]">
                       {entry.log
-                        ? `${formatInteger(entry.log.protein)}g protein`
+                        ? entry.log.protein !== null
+                          ? `${formatInteger(entry.log.protein)}g protein`
+                          : "Protein not logged"
                         : "No real entry"}
                     </p>
                     <p className="mt-1 text-xs text-[var(--secondary)]">
                       {entry.log
-                        ? `${formatInteger(entry.log.steps)} steps`
+                        ? entry.log.steps !== null
+                          ? `${formatInteger(entry.log.steps)} steps`
+                          : "Steps not logged"
                         : "No score recorded"}
                     </p>
                   </div>
@@ -182,9 +186,13 @@ export default async function ReviewPage() {
                   </p>
                   <p>
                     Average intake came in at{" "}
-                    {formatInteger(weeklySummary.averageCaloriesIn ?? 0)} calories in and
-                    average movement held at{" "}
-                    {formatInteger(weeklySummary.averageSteps ?? 0)} steps.
+                    {weeklySummary.averageCaloriesIn !== null
+                      ? `${formatInteger(weeklySummary.averageCaloriesIn)} calories in`
+                      : "Not enough data yet"}{" "}
+                    and average movement held at{" "}
+                    {weeklySummary.averageSteps !== null
+                      ? `${formatInteger(weeklySummary.averageSteps)} steps`
+                      : "Not enough data yet"}.
                   </p>
                   <p>
                     Scale weight moved{" "}

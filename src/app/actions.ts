@@ -5,15 +5,24 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 
+const emptyToNull = (value: FormDataEntryValue | null) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+};
+
 const dailyLogSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  weight: z.coerce.number().positive(),
-  caloriesIn: z.coerce.number().int().nonnegative(),
-  caloriesOut: z.coerce.number().int().nonnegative(),
-  protein: z.coerce.number().int().nonnegative(),
-  steps: z.coerce.number().int().nonnegative(),
-  water: z.coerce.number().nonnegative(),
-  fastingHours: z.coerce.number().min(0).max(24),
+  weight: z.preprocess(emptyToNull, z.coerce.number().positive()),
+  caloriesIn: z.preprocess(emptyToNull, z.coerce.number().int().nonnegative().nullable()),
+  caloriesOut: z.preprocess(emptyToNull, z.coerce.number().int().nonnegative().nullable()),
+  protein: z.preprocess(emptyToNull, z.coerce.number().int().nonnegative().nullable()),
+  steps: z.preprocess(emptyToNull, z.coerce.number().int().nonnegative().nullable()),
+  water: z.preprocess(emptyToNull, z.coerce.number().nonnegative().nullable()),
+  fastingHours: z.preprocess(emptyToNull, z.coerce.number().min(0).max(24).nullable()),
   stayedOnPlan: z.boolean(),
   noNightEating: z.boolean(),
 });

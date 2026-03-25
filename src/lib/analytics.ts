@@ -37,6 +37,10 @@ function averageOrNull(values: number[], minCount: number) {
   return average(values);
 }
 
+function isPresent(value: number | null): value is number {
+  return value !== null;
+}
+
 export function attachScores(logs: DailyLog[]): ScoredLog[] {
   return logs.map((log) => {
     const breakdown = getScoreBreakdown(log);
@@ -194,11 +198,11 @@ export function getWeeklySummary(logs: ScoredLog[]) {
     goalCompletionPercent: Math.min((totalScore / WEEKLY_TARGET_SCORE) * 100, 100),
     consistencyPercent: hasEnoughEntriesForWeek ? (totalScore / 35) * 100 : null,
     averageCaloriesIn: averageOrNull(
-      loggedEntries.map((entry) => entry.caloriesIn),
+      loggedEntries.map((entry) => entry.caloriesIn).filter(isPresent),
       7,
     ),
     averageSteps: averageOrNull(
-      loggedEntries.map((entry) => entry.steps),
+      loggedEntries.map((entry) => entry.steps).filter(isPresent),
       7,
     ),
     weightChange,
@@ -231,10 +235,13 @@ export function buildWeightChartData(logs: ScoredLog[]) {
 }
 
 export function buildCalorieChartData(logs: ScoredLog[]) {
-  return logs.slice(-14).map((log) => ({
-    date: format(parseISO(log.date), "MMM d"),
-    caloriesIn: log.caloriesIn,
-  }));
+  return logs
+    .filter((log) => log.caloriesIn !== null)
+    .slice(-14)
+    .map((log) => ({
+      date: format(parseISO(log.date), "MMM d"),
+      caloriesIn: log.caloriesIn!,
+    }));
 }
 
 export function getThirtyDayWeightChange(logs: ScoredLog[]) {

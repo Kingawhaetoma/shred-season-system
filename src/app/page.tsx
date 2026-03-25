@@ -33,6 +33,42 @@ type WeightHeroValueProps = {
   size?: "hero" | "stat";
 };
 
+type EntrySummarySource = {
+  caloriesIn: number | null;
+  caloriesOut: number | null;
+  steps: number | null;
+};
+
+function formatCalorieSummary(entry: Pick<EntrySummarySource, "caloriesIn" | "caloriesOut">) {
+  if (entry.caloriesIn !== null && entry.caloriesOut !== null) {
+    return `${formatInteger(entry.caloriesIn)} in / ${formatInteger(entry.caloriesOut)} out`;
+  }
+
+  if (entry.caloriesIn !== null) {
+    return `${formatInteger(entry.caloriesIn)} in`;
+  }
+
+  if (entry.caloriesOut !== null) {
+    return `${formatInteger(entry.caloriesOut)} out`;
+  }
+
+  return "Calories not logged";
+}
+
+function formatSecondarySummary(entry: EntrySummarySource) {
+  const parts: string[] = [];
+
+  if (entry.caloriesIn !== null && entry.caloriesOut !== null) {
+    parts.push(`${formatInteger(entry.caloriesIn - entry.caloriesOut)} net`);
+  }
+
+  if (entry.steps !== null) {
+    parts.push(`${formatInteger(entry.steps)} steps`);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : "Weight-only entry";
+}
+
 function WeightHeroValue({ value, size = "hero" }: WeightHeroValueProps) {
   if (value === null) {
     return (
@@ -73,7 +109,9 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   const currentWeight = latestLog?.weight ?? null;
   const todayNetCalories =
-    todayLog ? todayLog.caloriesIn - todayLog.caloriesOut : null;
+    todayLog && todayLog.caloriesIn !== null && todayLog.caloriesOut !== null
+      ? todayLog.caloriesIn - todayLog.caloriesOut
+      : null;
   const poundsRemaining =
     currentWeight === null ? null : Math.max(currentWeight - GOAL_WEIGHT, 0);
   const heroRemainingLine =
@@ -398,7 +436,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
                   {todayLog
-                    ? `${formatInteger(todayLog.caloriesIn)} in / ${formatInteger(todayLog.caloriesOut)} out`
+                    ? formatCalorieSummary(todayLog)
                     : "Saved with today’s entry"}
                 </p>
               </div>
@@ -475,12 +513,12 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <div className="hidden text-right sm:block">
                       <p className="text-sm text-[var(--foreground)]">
                         {entry.log
-                          ? `${formatInteger(entry.log.caloriesIn)} in / ${formatInteger(entry.log.caloriesOut)} out`
+                          ? formatCalorieSummary(entry.log)
                           : "No real entry"}
                       </p>
                       <p className="mt-1 text-xs text-[var(--secondary)]">
                         {entry.log
-                          ? `${formatInteger(entry.log.caloriesIn - entry.log.caloriesOut)} net · ${formatInteger(entry.log.steps)} steps`
+                          ? formatSecondarySummary(entry.log)
                           : "No score recorded"}
                       </p>
                     </div>
