@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "Weekly Audit",
 };
 
+export const dynamic = "force-dynamic";
+
 const habitLabels = {
   caloriesInRange: "Calories in range",
   proteinHit: "Protein target",
@@ -40,11 +42,11 @@ export default async function ReviewPage() {
         <div className="section-divider mt-8 grid gap-8 pt-8 sm:grid-cols-2 xl:grid-cols-4">
           <div className="space-y-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
-              Average calories
+              Average intake
             </p>
             <p className="font-mono text-5xl font-semibold tracking-[-0.08em] text-[var(--foreground)] sm:text-6xl">
-              {weeklySummary.averageCalories !== null
-                ? formatInteger(weeklySummary.averageCalories)
+              {weeklySummary.averageCaloriesIn !== null
+                ? formatInteger(weeklySummary.averageCaloriesIn)
                 : "Not enough data yet"}
             </p>
             <p className="text-sm text-[var(--secondary)]">Needs 7 real entries.</p>
@@ -180,7 +182,7 @@ export default async function ReviewPage() {
                   </p>
                   <p>
                     Average intake came in at{" "}
-                    {formatInteger(weeklySummary.averageCalories ?? 0)} calories and
+                    {formatInteger(weeklySummary.averageCaloriesIn ?? 0)} calories in and
                     average movement held at{" "}
                     {formatInteger(weeklySummary.averageSteps ?? 0)} steps.
                   </p>

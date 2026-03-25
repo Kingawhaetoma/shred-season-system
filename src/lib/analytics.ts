@@ -193,8 +193,8 @@ export function getWeeklySummary(logs: ScoredLog[]) {
     targetScore: WEEKLY_TARGET_SCORE,
     goalCompletionPercent: Math.min((totalScore / WEEKLY_TARGET_SCORE) * 100, 100),
     consistencyPercent: hasEnoughEntriesForWeek ? (totalScore / 35) * 100 : null,
-    averageCalories: averageOrNull(
-      loggedEntries.map((entry) => entry.calories),
+    averageCaloriesIn: averageOrNull(
+      loggedEntries.map((entry) => entry.caloriesIn),
       7,
     ),
     averageSteps: averageOrNull(
@@ -233,7 +233,7 @@ export function buildWeightChartData(logs: ScoredLog[]) {
 export function buildCalorieChartData(logs: ScoredLog[]) {
   return logs.slice(-14).map((log) => ({
     date: format(parseISO(log.date), "MMM d"),
-    calories: log.calories,
+    caloriesIn: log.caloriesIn,
   }));
 }
 

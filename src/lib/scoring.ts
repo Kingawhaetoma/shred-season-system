@@ -3,7 +3,7 @@ import { CALORIE_RANGE, PROTEIN_GOAL, STEPS_GOAL } from "@/lib/constants";
 
 type ScoreSource = Pick<
   DailyLog,
-  "calories" | "protein" | "steps" | "noNightEating" | "stayedOnPlan"
+  "caloriesIn" | "protein" | "steps" | "noNightEating" | "stayedOnPlan"
 >;
 
 export type ScoreBreakdown = {
@@ -21,7 +21,7 @@ export type ScoreBreakdown = {
 
 export function getScoreBreakdown(log: ScoreSource): ScoreBreakdown {
   const caloriesInRange =
-    log.calories >= CALORIE_RANGE.min && log.calories <= CALORIE_RANGE.max;
+    log.caloriesIn >= CALORIE_RANGE.min && log.caloriesIn <= CALORIE_RANGE.max;
   const proteinHit = log.protein >= PROTEIN_GOAL;
   const stepsHit = log.steps >= STEPS_GOAL;
 

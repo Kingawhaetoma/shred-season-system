@@ -59,57 +59,69 @@ export function DailyLogForm({
 }: DailyLogFormProps) {
   return (
     <form action={saveDailyLog} className="space-y-7">
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <Field
-          id="date"
-          label="Log date"
-          type="date"
-          defaultValue={defaultValues?.date ?? getTodayKey()}
-        />
-        <Field
-          id="weight"
-          label="Weight"
-          step="0.1"
-          min="0"
-          defaultValue={defaultValues?.weight}
-          suffix="lb"
-        />
-        <Field
-          id="calories"
-          label="Calories"
-          min="0"
-          defaultValue={defaultValues?.calories}
-          suffix="kcal"
-        />
-        <Field
-          id="protein"
-          label="Protein"
-          min="0"
-          defaultValue={defaultValues?.protein}
-          suffix="g"
-        />
-        <Field
-          id="steps"
-          label="Steps"
-          min="0"
-          defaultValue={defaultValues?.steps}
-        />
-        <Field
-          id="water"
-          label="Water"
-          step="0.1"
-          min="0"
-          defaultValue={defaultValues?.water}
-          suffix="L"
-        />
-        <Field
-          id="fastingHours"
-          label="Fasting hours"
-          step="0.5"
-          min="0"
-          defaultValue={defaultValues?.fastingHours}
-          suffix="hrs"
-        />
+      <div className="space-y-5">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <Field
+            id="date"
+            label="Log date"
+            type="date"
+            defaultValue={defaultValues?.date ?? getTodayKey()}
+          />
+          <Field
+            id="weight"
+            label="Weight"
+            step="0.1"
+            min="0"
+            defaultValue={defaultValues?.weight}
+            suffix="lb"
+          />
+          <Field
+            id="caloriesIn"
+            label="Calories In"
+            min="0"
+            defaultValue={defaultValues?.caloriesIn}
+            suffix="kcal"
+          />
+          <Field
+            id="caloriesOut"
+            label="Calories Out"
+            min="0"
+            defaultValue={defaultValues?.caloriesOut}
+            suffix="kcal"
+          />
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <Field
+            id="protein"
+            label="Protein"
+            min="0"
+            defaultValue={defaultValues?.protein}
+            suffix="g"
+          />
+          <Field
+            id="steps"
+            label="Steps"
+            min="0"
+            defaultValue={defaultValues?.steps}
+          />
+          <Field
+            id="water"
+            label="Water"
+            step="0.1"
+            min="0"
+            defaultValue={defaultValues?.water}
+            suffix="L"
+          />
+          <Field
+            id="fastingHours"
+            label="Fasting hours"
+            step="0.5"
+            min="0"
+            defaultValue={defaultValues?.fastingHours}
+            suffix="hrs"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -143,7 +155,8 @@ export function DailyLogForm({
             One entry per date
           </p>
           <p className="text-sm leading-6 text-[var(--secondary)]">
-            Logging the same date again updates that day&apos;s record.
+            Logging the same date again updates that day&apos;s record. Net calories
+            are calculated automatically.
           </p>
         </div>
         <SubmitButton label={submitLabel} />

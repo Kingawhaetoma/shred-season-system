@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
+export const dynamic = "force-dynamic";
+
 type HomePageProps = {
   searchParams: Promise<{
     saved?: string;
@@ -70,6 +72,8 @@ export default async function Home({ searchParams }: HomePageProps) {
   const dangerAlert = getDangerAlert(scoredLogs);
 
   const currentWeight = latestLog?.weight ?? null;
+  const todayNetCalories =
+    todayLog ? todayLog.caloriesIn - todayLog.caloriesOut : null;
   const poundsRemaining =
     currentWeight === null ? null : Math.max(currentWeight - GOAL_WEIGHT, 0);
   const heroRemainingLine =
@@ -377,6 +381,29 @@ export default async function Home({ searchParams }: HomePageProps) {
               <ScorePill score={todayLog?.score ?? 0} />
             </div>
 
+            <div className="mt-5 flex items-center justify-between gap-5 rounded-[18px] border border-[var(--border)] bg-[rgba(243,239,232,0.58)] px-4 py-3.5">
+              <div className="space-y-1">
+                <p className="type-eyebrow">
+                  Net calories
+                </p>
+                <p className="text-xs leading-6 text-[var(--secondary)]">
+                  Calories In minus Calories Out
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-[1rem] font-medium tracking-[-0.04em] text-[var(--foreground)]">
+                  {todayNetCalories !== null
+                    ? `${formatInteger(todayNetCalories)} kcal`
+                    : "Will calculate after logging"}
+                </p>
+                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
+                  {todayLog
+                    ? `${formatInteger(todayLog.caloriesIn)} in / ${formatInteger(todayLog.caloriesOut)} out`
+                    : "Saved with today’s entry"}
+                </p>
+              </div>
+            </div>
+
             {todayLog ? (
               <div className="mt-5 divide-y divide-[var(--border)]">
                 {todayLog.breakdown.details.map((detail) => (
@@ -448,12 +475,12 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <div className="hidden text-right sm:block">
                       <p className="text-sm text-[var(--foreground)]">
                         {entry.log
-                          ? `${formatInteger(entry.log.calories)} kcal`
+                          ? `${formatInteger(entry.log.caloriesIn)} in / ${formatInteger(entry.log.caloriesOut)} out`
                           : "No real entry"}
                       </p>
                       <p className="mt-1 text-xs text-[var(--secondary)]">
                         {entry.log
-                          ? `${formatInteger(entry.log.steps)} steps`
+                          ? `${formatInteger(entry.log.caloriesIn - entry.log.caloriesOut)} net · ${formatInteger(entry.log.steps)} steps`
                           : "No score recorded"}
                       </p>
                     </div>

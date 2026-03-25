@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   title: "Trajectory",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ProgressPage() {
   const logs = attachScores(await getAllLogs());
   const weightChartData = buildWeightChartData(logs);
@@ -136,7 +138,7 @@ export default async function ProgressPage() {
             Intake record
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--foreground)]">
-            Intake against plan range
+            Calories in against plan range
           </h2>
         </div>
         <div className="mt-8">

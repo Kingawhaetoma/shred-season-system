@@ -11,10 +11,11 @@ import {
   YAxis,
 } from "recharts";
 import { CALORIE_RANGE } from "@/lib/constants";
+import { formatInteger } from "@/lib/format";
 
 type CalorieChartDatum = {
   date: string;
-  calories: number;
+  caloriesIn: number;
 };
 
 type CalorieChartProps = {
@@ -40,6 +41,7 @@ export function CalorieChart({ data }: CalorieChartProps) {
           />
           <Tooltip
             cursor={{ fill: "#F3EFE8" }}
+            formatter={(value, name) => [`${formatInteger(Number(value))} kcal`, name]}
             contentStyle={{
               borderRadius: "12px",
               border: "1px solid #E7DFD6",
@@ -49,7 +51,8 @@ export function CalorieChart({ data }: CalorieChartProps) {
           />
           <ReferenceArea y1={CALORIE_RANGE.min} y2={CALORIE_RANGE.max} fill="#EDF3F0" />
           <Bar
-            dataKey="calories"
+            dataKey="caloriesIn"
+            name="Calories In"
             fill="#6B6B6B"
             radius={[6, 6, 0, 0]}
           />

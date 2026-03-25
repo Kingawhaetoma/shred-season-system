@@ -4,7 +4,8 @@ import { CALORIE_RANGE, PROTEIN_GOAL } from "../src/lib/constants";
 type SampleLog = {
   date: string;
   weight: number;
-  calories: number;
+  caloriesIn: number;
+  caloriesOut: number;
   protein: number;
   steps: number;
   water: number;
@@ -24,7 +25,8 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
     let weight = Number(
       (baseWeight + [0.4, 0.2, 0.1, 0.35, 0.15, -0.05, -0.25][patternIndex]).toFixed(1),
     );
-    let calories = [2240, 2080, 1960, 2360, 2480, 2140, 2010][patternIndex];
+    let caloriesIn = [2240, 2080, 1960, 2360, 2480, 2140, 2010][patternIndex];
+    let caloriesOut = [520, 610, 470, 560, 420, 650, 710][patternIndex];
     let protein = [192, 181, 188, 170, 156, 184, 194][patternIndex];
     let steps = [12600, 10950, 9800, 11400, 7600, 10250, 14100][patternIndex];
     let water = [3.9, 3.5, 3.7, 3.1, 2.8, 3.4, 4.0][patternIndex];
@@ -33,7 +35,8 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
     let noNightEating = [true, true, true, false, false, true, true][patternIndex];
 
     if (dayOffset === 4) {
-      calories = 2780;
+      caloriesIn = 2780;
+      caloriesOut = 360;
       protein = 151;
       steps = 6200;
       water = 2.6;
@@ -43,7 +46,8 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
     }
 
     if (dayOffset === 3) {
-      calories = 2620;
+      caloriesIn = 2620;
+      caloriesOut = 280;
       protein = 144;
       steps = 4800;
       water = 2.4;
@@ -53,7 +57,8 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
     }
 
     if (dayOffset === 1) {
-      calories = 2490;
+      caloriesIn = 2490;
+      caloriesOut = 390;
       protein = 158;
       steps = 7100;
       water = 2.9;
@@ -64,7 +69,8 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
 
     if (dayOffset === 0) {
       weight = Number((weight - 0.5).toFixed(1));
-      calories = 2085;
+      caloriesIn = 2085;
+      caloriesOut = 640;
       protein = 196;
       steps = 11840;
       water = 3.7;
@@ -74,13 +80,14 @@ export function buildSampleLogs(today = new Date()): SampleLog[] {
     }
 
     const caloriesInRange =
-      calories >= CALORIE_RANGE.min && calories <= CALORIE_RANGE.max;
+      caloriesIn >= CALORIE_RANGE.min && caloriesIn <= CALORIE_RANGE.max;
     const proteinHit = protein >= PROTEIN_GOAL;
 
     return {
       date,
       weight,
-      calories,
+      caloriesIn,
+      caloriesOut,
       protein,
       steps,
       water,

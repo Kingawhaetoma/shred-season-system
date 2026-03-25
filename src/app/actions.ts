@@ -8,7 +8,8 @@ import prisma from "@/lib/prisma";
 const dailyLogSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   weight: z.coerce.number().positive(),
-  calories: z.coerce.number().int().nonnegative(),
+  caloriesIn: z.coerce.number().int().nonnegative(),
+  caloriesOut: z.coerce.number().int().nonnegative(),
   protein: z.coerce.number().int().nonnegative(),
   steps: z.coerce.number().int().nonnegative(),
   water: z.coerce.number().nonnegative(),
@@ -21,7 +22,8 @@ export async function saveDailyLog(formData: FormData) {
   const parsed = dailyLogSchema.safeParse({
     date: formData.get("date"),
     weight: formData.get("weight"),
-    calories: formData.get("calories"),
+    caloriesIn: formData.get("caloriesIn"),
+    caloriesOut: formData.get("caloriesOut"),
     protein: formData.get("protein"),
     steps: formData.get("steps"),
     water: formData.get("water"),

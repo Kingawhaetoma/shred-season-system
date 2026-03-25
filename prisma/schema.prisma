@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,7 +16,8 @@ model DailyLog {
   id             Int      @id @default(autoincrement())
   date           String   @unique
   weight         Float
-  calories       Int
+  caloriesIn     Int
+  caloriesOut    Int      @default(0)
   protein        Int
   steps          Int
   water          Float

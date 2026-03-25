@@ -5,7 +5,7 @@ Personal weight loss accountability app built with:
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Prisma with SQLite
+- Prisma with Supabase Postgres
 - Recharts
 
 ## What it does
@@ -20,6 +20,7 @@ Personal weight loss accountability app built with:
 
 ```bash
 npm install
+export DATABASE_URL="your-supabase-postgres-url"
 npm run db:migrate
 npm run db:seed
 npm run dev
@@ -41,5 +42,5 @@ npm run db:seed
 ## Notes
 
 - The app is single-user and does not include authentication.
-- Sample data is seeded into `prisma/dev.db`.
-- In this Node 25 environment, Prisma&apos;s schema engine was not reliably running `migrate` or `db push`, so `db:migrate` and `db:push` use `prisma/setup.ts` to initialize the SQLite schema while the app still uses Prisma Client for queries and mutations.
+- Sample data can be seeded into your configured Postgres database after migration.
+- Prisma reads `DATABASE_URL` from the environment via `prisma.config.ts`.

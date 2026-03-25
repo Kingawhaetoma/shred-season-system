@@ -30,7 +30,7 @@ type WeightChartDatum = {
 
 type CalorieChartDatum = {
   date: string;
-  calories: number;
+  caloriesIn: number;
 };
 
 export function LazyWeightChart({ data }: { data: WeightChartDatum[] }) {
