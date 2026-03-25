@@ -16,11 +16,11 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Discipline Cut",
-    template: "%s | Discipline Cut",
+    default: "Shred Season System",
+    template: "%s | Shred Season System",
   },
   description:
-    "A personal weight loss accountability dashboard focused on consistency, streaks, and clean daily tracking.",
+    "Shred Season is a private performance system for disciplined daily tracking, adherence, and weight-loss review.",
 };
 
 export default function RootLayout({
@@ -35,10 +35,10 @@ export default function RootLayout({
     >
       <body className="min-h-full">
         <div className="relative min-h-screen overflow-x-hidden">
-          <div className="discipline-grid pointer-events-none absolute inset-0 opacity-35" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/35 to-transparent" />
+          <div className="discipline-grid pointer-events-none absolute inset-0 opacity-20" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-[rgba(251,250,247,0.88)] to-transparent" />
           <Navigation />
-          <main className="relative mx-auto w-full max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+          <main className="relative mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
             {children}
           </main>
         </div>

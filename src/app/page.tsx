@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
 import { DailyLogForm } from "@/components/DailyLogForm";
 import { FastTimer } from "@/components/FastTimer";
-import { MetricCard } from "@/components/MetricCard";
 import { ScorePill } from "@/components/ScorePill";
+import { GOAL_WEIGHT } from "@/lib/constants";
 import { getAllLogs } from "@/lib/data";
 import {
   attachScores,
   buildRollingWindow,
   getDangerAlert,
   getLatestLog,
-  getSevenDayAverageWeight,
   getStreak,
   getWeeklySummary,
 } from "@/lib/analytics";
 import { formatDateLabel, getTodayKey } from "@/lib/date";
-import { formatInteger, formatPercent, formatWeight } from "@/lib/format";
+import { formatInteger, formatWeightValue } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -27,253 +26,435 @@ type HomePageProps = {
   }>;
 };
 
+type WeightHeroValueProps = {
+  value: number | null;
+  size?: "hero" | "stat";
+};
+
+function WeightHeroValue({ value, size = "hero" }: WeightHeroValueProps) {
+  if (value === null) {
+    return (
+      <span className="text-[1.45rem] font-semibold leading-tight tracking-[-0.05em] text-[var(--foreground)]">
+        Not enough data yet
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-end gap-2.5">
+      <span
+        className={
+          size === "hero"
+            ? "type-metric"
+            : "type-metric-sm"
+        }
+      >
+        {formatWeightValue(value)}
+      </span>
+      <span className={`type-unit ${size === "hero" ? "pb-[0.72rem]" : "pb-[0.45rem]"}`}>
+        lb
+      </span>
+    </span>
+  );
+}
+
 export default async function Home({ searchParams }: HomePageProps) {
   const [logs, params] = await Promise.all([getAllLogs(), searchParams]);
   const scoredLogs = attachScores(logs);
   const latestLog = getLatestLog(scoredLogs);
   const todayKey = getTodayKey();
   const todayLog = scoredLogs.find((log) => log.date === todayKey) ?? null;
-  const lastSevenDays = buildRollingWindow(scoredLogs, 7);
+  const lastSevenDays = [...buildRollingWindow(scoredLogs, 7)].reverse();
   const weeklySummary = getWeeklySummary(scoredLogs);
   const streak = getStreak(scoredLogs);
   const dangerAlert = getDangerAlert(scoredLogs);
-  const sevenDayAverageWeight = getSevenDayAverageWeight(scoredLogs);
+
+  const currentWeight = latestLog?.weight ?? null;
+  const poundsRemaining =
+    currentWeight === null ? null : Math.max(currentWeight - GOAL_WEIGHT, 0);
+  const heroRemainingLine =
+    poundsRemaining !== null
+      ? `${formatWeightValue(poundsRemaining)} lb remaining`
+      : "Remaining measured from the first recorded weigh-in";
+  const heroHeadline =
+    currentWeight !== null
+      ? `${formatWeightValue(currentWeight)} → ${formatWeightValue(GOAL_WEIGHT)}`
+      : `Target: ${formatWeightValue(GOAL_WEIGHT)} lb`;
+  const todayScoreTone =
+    todayLog && todayLog.score >= 4
+      ? "text-[var(--accent-strong)]"
+      : "text-[var(--foreground)]";
+  const streakTone =
+    streak > 0 ? "text-[var(--accent-strong)]" : "text-[var(--foreground)]";
+  const weekToDateTone =
+    weeklySummary.daysCompleted > 0
+      ? "text-[var(--accent-strong)]"
+      : "text-[var(--foreground)]";
+  const weeklyScoreTone =
+    weeklySummary.totalScore > 0
+      ? "text-[var(--accent-strong)]"
+      : "text-[var(--foreground)]";
+
+  const status = dangerAlert
+    ? {
+        label: "Off Track",
+        detail: dangerAlert.message,
+        action: "Correct today.",
+        cardTone:
+          "border-[rgba(164,87,69,0.11)] bg-[linear-gradient(180deg,rgba(246,237,234,0.9),rgba(251,250,247,0.98))]",
+        badgeTone: "border-[rgba(164,87,69,0.11)] bg-[rgba(164,87,69,0.035)]",
+        accent: "bg-[var(--danger)]",
+        labelTone: "text-[var(--warning)]",
+      }
+    : todayLog
+      ? todayLog.score >= 4
+        ? {
+            label: "On Track",
+            detail: `Today is scoring ${todayLog.score}/5.`,
+            action: "Hold the line.",
+            cardTone:
+              "border-[rgba(47,93,80,0.14)] bg-[linear-gradient(180deg,rgba(237,243,240,0.96),rgba(251,250,247,0.98))]",
+            badgeTone: "border-[rgba(47,93,80,0.14)] bg-[rgba(47,93,80,0.04)]",
+            accent: "bg-[var(--accent)]",
+            labelTone: "text-[var(--accent-strong)]",
+          }
+        : {
+            label: "Needs Correction",
+            detail: `Today is scoring ${todayLog.score}/5.`,
+            action: "Correct today.",
+            cardTone:
+              "border-[rgba(164,87,69,0.11)] bg-[linear-gradient(180deg,rgba(246,237,234,0.88),rgba(251,250,247,0.98))]",
+            badgeTone: "border-[rgba(164,87,69,0.11)] bg-[rgba(164,87,69,0.03)]",
+            accent: "bg-[var(--warning)]",
+            labelTone: "text-[var(--warning)]",
+          }
+      : {
+          label: "Needs Correction",
+          detail: "No log has been entered for today yet.",
+          action: "Log before close.",
+          cardTone:
+            "border-[var(--border)] bg-[linear-gradient(180deg,rgba(243,239,232,0.96),rgba(251,250,247,0.98))]",
+          badgeTone: "border-[var(--border)] bg-[rgba(154,148,140,0.08)]",
+          accent: "bg-[var(--muted)]",
+          labelTone: "text-[var(--secondary)]",
+        };
 
   return (
-    <div className="space-y-6">
-      <section className="glass-card rounded-[32px] px-6 py-7 sm:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl space-y-3">
-            <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-              Daily accountability
-            </p>
-            <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)] sm:text-5xl">
-              Discipline over drama.
-            </h1>
-            <p className="max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">
-              Score each day against the plan, catch slippage early, and keep
-              the trend moving down through boring consistency.
-            </p>
-          </div>
-          <div className="rounded-[28px] border border-black/8 bg-black/[0.02] px-5 py-4">
-            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-              Latest check-in
-            </p>
-            <div className="mt-3 flex flex-wrap items-end gap-6">
-              <div>
-                <p className="font-mono text-3xl font-semibold tracking-[-0.06em] text-[var(--foreground)]">
-                  {latestLog ? formatWeight(latestLog.weight) : "--"}
-                </p>
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  {latestLog
-                    ? `${formatDateLabel(latestLog.date)} weigh-in`
-                    : "No logs yet"}
-                </p>
-              </div>
-              <div>
-                <p className="font-mono text-3xl font-semibold tracking-[-0.06em] text-[var(--foreground)]">
-                  {sevenDayAverageWeight ? formatWeight(sevenDayAverageWeight) : "--"}
-                </p>
-                <p className="mt-1 text-sm text-[var(--muted)]">7-day average weight</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <div className="space-y-7 lg:space-y-8">
       {params.saved ? (
-        <section className="glass-card rounded-[28px] border-emerald-200 bg-emerald-50/70 px-5 py-4">
-          <p className="font-medium text-[var(--success)]">
-            Saved log for {formatDateLabel(params.saved)}.
+        <section className="glass-card rounded-2xl border border-[var(--border)] px-6 py-5">
+          <p className="type-eyebrow type-eyebrow-accent">
+            Entry recorded
+          </p>
+          <p className="mt-2 text-sm text-[var(--secondary)]">
+            Logged {formatDateLabel(params.saved)}.
           </p>
         </section>
       ) : null}
 
       {params.invalid ? (
-        <section className="glass-card rounded-[28px] border-rose-200 bg-rose-50/70 px-5 py-4">
-          <p className="font-medium text-[var(--danger)]">
-            The log could not be saved. Check the form values and try again.
+        <section className="glass-card rounded-2xl border border-[var(--border)] px-6 py-5">
+          <p className="type-eyebrow text-[var(--warning)]">
+            Save failed
+          </p>
+          <p className="mt-2 text-sm text-[var(--secondary)]">
+            Check the values and submit again.
           </p>
         </section>
       ) : null}
 
-      {dangerAlert ? (
-        <section className="glass-card rounded-[28px] border-rose-200 bg-rose-50/70 px-5 py-5">
-          <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--danger)]">
-            Danger detection
-          </p>
-          <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                {dangerAlert.lowScoreDays} of the last {dangerAlert.windowDays} days
-                scored {dangerAlert.threshold} or less.
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-                Average score over that stretch is {dangerAlert.averageScore.toFixed(1)}
-                /5. Tighten calories, recover your step floor, and stack one clean
-                day immediately.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-rose-200 bg-white/80 px-4 py-3">
-              <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-                Most recent miss
-              </p>
-              <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
-                {formatDateLabel(dangerAlert.latestLowDate)}
-              </p>
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <section className="glass-card rounded-2xl px-6 py-6 sm:px-7 sm:py-7 xl:px-8">
+        <div className="grid gap-7 xl:grid-cols-[1.32fr_0.68fr] xl:gap-8">
+          <div className="space-y-7">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-6 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.44)] sm:px-7 sm:py-7">
+              <div className="grid gap-7 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+                <div className="space-y-7">
+                  <div className="space-y-5">
+                    <p className="type-eyebrow type-eyebrow-accent">
+                      Shred Season
+                    </p>
+                    <div className="space-y-7">
+                      <div className="space-y-3.5">
+                        <h1 className="type-hero max-w-[8.8ch]">
+                          {heroHeadline}
+                        </h1>
+                        <p className="font-mono text-[0.92rem] font-medium tracking-[-0.03em] text-[var(--secondary)]">
+                          {heroRemainingLine}
+                        </p>
+                      </div>
+                      <p className="type-body max-w-md">
+                        Daily inputs, weekly discipline, long-horizon trend.
+                      </p>
+                    </div>
+                  </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Today's score"
-          value={`${todayLog?.score ?? 0}/5`}
-          subtitle={
-            todayLog ? "Live consistency score for today." : "Log today to start the score."
-          }
-        />
-        <MetricCard
-          title="Streak"
-          value={`${streak} day${streak === 1 ? "" : "s"}`}
-          subtitle="Consecutive days scoring 4/5 or better."
-          accent="success"
-        />
-        <MetricCard
-          title="Current fast timer"
-          subtitle="Assumes your fast starts at 8:00 PM."
-          accent="warning"
-        >
-          <FastTimer />
-        </MetricCard>
-        <MetricCard
-          title="Weekly goal progress"
-          value={`${weeklySummary.totalScore}/${weeklySummary.targetScore}`}
-          subtitle={`${weeklySummary.daysCompleted}/7 days logged in the rolling week.`}
-          accent="success"
-        >
-          <div className="mt-4 space-y-2">
-            <div className="h-2 rounded-full bg-black/6">
-              <div
-                className="h-full rounded-full bg-[var(--success)] transition-all"
-                style={{ width: `${weeklySummary.goalCompletionPercent}%` }}
-              />
+                  <a
+                    href="#log-today"
+                    className="button-premium min-w-44 font-mono text-[11px] font-semibold uppercase tracking-[0.3em]"
+                  >
+                    <span>Log Today</span>
+                    <span aria-hidden="true" className="button-premium-arrow">
+                      →
+                    </span>
+                  </a>
+                </div>
+
+                <div className="grid content-start gap-4 sm:grid-cols-2">
+                  <div className="flex min-h-[196px] flex-col justify-between rounded-2xl border border-[var(--border)] bg-[linear-gradient(180deg,rgba(243,239,232,0.88),rgba(251,250,247,0.98))] px-6 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.42)] sm:col-span-2">
+                    <p className="type-eyebrow">
+                      Current weight
+                    </p>
+                    <div className="mt-4">
+                      <WeightHeroValue value={currentWeight} />
+                    </div>
+                    <p className="type-body-sm mt-4">
+                      Latest recorded scale weight.
+                    </p>
+                  </div>
+
+                  <div className="flex min-h-[144px] flex-col justify-between rounded-2xl border border-[var(--border)] bg-[linear-gradient(180deg,rgba(251,250,247,0.98),rgba(246,243,238,0.92))] px-6 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.38)]">
+                    <p className="type-eyebrow">
+                      Goal weight
+                    </p>
+                    <div className="mt-4">
+                      <WeightHeroValue value={GOAL_WEIGHT} size="stat" />
+                    </div>
+                  </div>
+
+                  <div className="flex min-h-[144px] flex-col justify-between rounded-2xl border border-[var(--border)] bg-[linear-gradient(180deg,rgba(251,250,247,0.98),rgba(246,243,238,0.92))] px-6 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.38)]">
+                    <p className="type-eyebrow">
+                      To target
+                    </p>
+                    <div className="mt-4">
+                      <WeightHeroValue value={poundsRemaining} size="stat" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="section-divider mt-8 grid gap-6 pt-6 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-end sm:gap-8">
+                <div className="space-y-1.5">
+                  <p className="type-eyebrow">
+                    Latest weigh-in
+                  </p>
+                  <p className="text-[1.28rem] font-semibold leading-tight tracking-[-0.045em] text-[var(--foreground)]">
+                    {latestLog ? formatDateLabel(latestLog.date) : "Not enough data yet"}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 sm:justify-self-end">
+                  <p className="type-eyebrow">
+                    Today&apos;s score
+                  </p>
+                  <div className="flex items-end gap-3">
+                    <p className={`font-mono text-[2.15rem] font-semibold leading-none tracking-[-0.075em] ${todayScoreTone}`}>
+                      {todayLog ? `${todayLog.score}/5` : "Not logged"}
+                    </p>
+                    {todayLog ? <ScorePill score={todayLog.score} /> : null}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 sm:justify-self-end">
+                  <p className="type-eyebrow">
+                    Streak
+                  </p>
+                  <p className={`font-mono text-[2.15rem] font-semibold leading-none tracking-[-0.075em] ${streakTone}`}>
+                    {streak}
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-[var(--muted)]">
-              {formatPercent(weeklySummary.goalCompletionPercent)} toward the weekly
-              target score.
-            </p>
           </div>
-        </MetricCard>
+
+          <aside className="panel-card rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
+            <div className="space-y-2.5">
+              <p className="type-eyebrow">
+                System status
+              </p>
+              <p className="type-body-sm max-w-[30ch]">
+                A read on execution quality and short-term scoring risk.
+              </p>
+            </div>
+
+            <div className={`mt-5 rounded-2xl border px-6 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.38)] ${status.cardTone}`}>
+              <div className="space-y-5">
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${status.badgeTone}`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${status.accent}`} />
+                  <p className={`font-mono text-[9px] uppercase tracking-[0.24em] ${status.labelTone}`}>
+                    Readout
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="type-status">
+                    {status.label}
+                  </p>
+                  <p className="type-body-sm max-w-[28ch]">
+                    {status.detail}
+                  </p>
+                  <p className={`text-[13px] font-medium tracking-[-0.01em] ${status.labelTone}`}>
+                    {status.action}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="section-divider mt-5 space-y-5 pt-5">
+              <div className="space-y-2">
+                <p className="type-eyebrow">
+                  Fasting clock
+                </p>
+                <FastTimer className="font-mono text-[1.85rem] font-semibold leading-none tracking-[-0.055em] text-[var(--foreground)]" />
+              </div>
+
+              <div className="section-divider pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="type-eyebrow">
+                    Week to date
+                  </p>
+                  <p className={`font-mono text-sm ${weekToDateTone}`}>
+                    {weeklySummary.daysCompleted}/7
+                  </p>
+                </div>
+                <p className="type-body-sm mt-2">
+                  Real entries logged this week.
+                </p>
+              </div>
+
+              <div className="section-divider pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="type-eyebrow">
+                    Score ledger
+                  </p>
+                  <p className={`font-mono text-sm ${weeklyScoreTone}`}>
+                    {weeklySummary.totalScore}/{weeklySummary.targetScore}
+                  </p>
+                </div>
+                <p className="type-body-sm mt-2">
+                  Score accumulated from real entries only.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="panel-card rounded-[32px] p-6 sm:p-7">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-                Daily log
+      <section className="grid gap-7 xl:grid-cols-[1.15fr_0.85fr] xl:gap-8">
+        <div id="log-today" className="panel-card rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
+          <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <p className="type-eyebrow">
+                Daily entry
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                Enter the facts.
+              <h2 className="text-[1.85rem] font-semibold leading-tight tracking-[-0.055em] text-[var(--foreground)]">
+                Record today&apos;s data
               </h2>
             </div>
-            <div className="rounded-2xl border border-black/8 bg-black/[0.02] px-4 py-3">
-              <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-                Today
-              </p>
-              <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
-                {formatDateLabel(todayKey)}
-              </p>
-            </div>
+            <p className="type-body-sm">Real data only.</p>
           </div>
-          <div className="mt-6">
-            <DailyLogForm defaultValues={todayLog ?? undefined} />
+
+          <div className="mt-7">
+            <DailyLogForm
+              defaultValues={todayLog ?? undefined}
+              submitLabel={todayLog ? "Update Entry" : "Log Today"}
+            />
           </div>
         </div>
 
-        <div className="space-y-6">
-          <section className="panel-card rounded-[32px] p-6 sm:p-7">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-                  Score breakdown
+        <div className="space-y-7">
+          <section className="panel-card rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
+            <div className="flex items-end justify-between gap-5 border-b border-[var(--border)] pb-5">
+              <div className="space-y-2">
+                <p className="type-eyebrow">
+                  Daily scorecard
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                  Today&apos;s discipline markers
+                <h2 className="text-[1.85rem] font-semibold leading-tight tracking-[-0.055em] text-[var(--foreground)]">
+                  What moved the score
                 </h2>
               </div>
               <ScorePill score={todayLog?.score ?? 0} />
             </div>
 
             {todayLog ? (
-              <div className="mt-6 space-y-4">
+              <div className="mt-5 divide-y divide-[var(--border)]">
                 {todayLog.breakdown.details.map((detail) => (
                   <div
                     key={detail.label}
-                    className="flex items-center justify-between rounded-2xl border border-black/6 bg-black/[0.02] px-4 py-3"
+                    className="flex items-center justify-between gap-4 py-4"
                   >
-                    <span className="text-sm font-medium text-[var(--foreground)]">
-                      {detail.label}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          detail.met ? "bg-[var(--accent)]" : "bg-[var(--border-strong)]"
+                        }`}
+                      />
+                      <span className="text-sm font-medium text-[var(--foreground)]">
+                        {detail.label}
+                      </span>
+                    </div>
                     <span
-                      className={`font-mono text-xs uppercase tracking-[0.24em] ${
-                        detail.met ? "text-[var(--success)]" : "text-[var(--muted)]"
+                      className={`font-mono text-[9px] uppercase tracking-[0.24em] ${
+                        detail.met
+                          ? "text-[var(--accent-strong)]"
+                          : "text-[var(--muted)]"
                       }`}
                     >
-                      {detail.met ? "hit" : "miss"}
+                      {detail.met ? "Pass" : "Fail"}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="mt-6 rounded-[28px] border border-dashed border-black/10 bg-black/[0.02] px-5 py-6 text-sm leading-6 text-[var(--muted)]">
-                No log for today yet. Submit the daily form to calculate the score and
-                fill this breakdown automatically.
+              <div className="type-body-sm mt-5">
+                No real entry for today yet. Log today and the score will calculate
+                automatically.
               </div>
             )}
           </section>
 
-          <section className="panel-card rounded-[32px] p-6 sm:p-7">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-                  Last 7 days
+          <section className="panel-card rounded-2xl px-6 py-6 sm:px-7 sm:py-7">
+            <div className="flex items-end justify-between gap-5 border-b border-[var(--border)] pb-5">
+              <div className="space-y-2">
+                <p className="type-eyebrow">
+                  Recent entries
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                  Consistency snapshot
+                <h2 className="text-[1.85rem] font-semibold leading-tight tracking-[-0.055em] text-[var(--foreground)]">
+                  Seven-day record
                 </h2>
               </div>
               <p className="font-mono text-sm text-[var(--muted)]">
-                {formatPercent(weeklySummary.consistencyPercent)} consistency
+                {weeklySummary.daysCompleted}/7 logged
               </p>
             </div>
-            <div className="mt-6 space-y-3">
-              {[...lastSevenDays].reverse().map((entry) => (
+
+            <div className="mt-5 divide-y divide-[var(--border)]">
+              {lastSevenDays.map((entry) => (
                 <div
                   key={entry.date}
-                  className="flex items-center justify-between rounded-2xl border border-black/6 bg-black/[0.02] px-4 py-3"
+                  className="flex items-center justify-between gap-4 py-4"
                 >
                   <div>
                     <p className="text-sm font-medium text-[var(--foreground)]">
                       {entry.dayLabel}
                     </p>
-                    <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
+                    <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--muted)]">
                       {entry.shortDate}
                     </p>
                   </div>
+
                   <div className="flex items-center gap-4">
                     <div className="hidden text-right sm:block">
                       <p className="text-sm text-[var(--foreground)]">
                         {entry.log
                           ? `${formatInteger(entry.log.calories)} kcal`
-                          : "No check-in"}
+                          : "No real entry"}
                       </p>
-                      <p className="text-xs text-[var(--muted)]">
+                      <p className="mt-1 text-xs text-[var(--secondary)]">
                         {entry.log
                           ? `${formatInteger(entry.log.steps)} steps`
-                          : "Missed entry"}
+                          : "No score recorded"}
                       </p>
                     </div>
                     <ScorePill score={entry.score} />

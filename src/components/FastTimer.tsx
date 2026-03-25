@@ -25,7 +25,11 @@ function formatDuration(milliseconds: number) {
     .join(":");
 }
 
-export function FastTimer() {
+type FastTimerProps = {
+  className?: string;
+};
+
+export function FastTimer({ className }: FastTimerProps) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -39,10 +43,13 @@ export function FastTimer() {
   }, []);
 
   return (
-    <div className="mt-4">
-      <p className="font-mono text-4xl font-semibold tracking-[-0.07em] text-[var(--foreground)]">
-        {formatDuration(now.getTime() - getFastStart(now).getTime())}
-      </p>
-    </div>
+    <p
+      className={
+        className ??
+        "font-mono text-4xl font-semibold tracking-[-0.07em] text-[var(--foreground)]"
+      }
+    >
+      {formatDuration(now.getTime() - getFastStart(now).getTime())}
+    </p>
   );
 }

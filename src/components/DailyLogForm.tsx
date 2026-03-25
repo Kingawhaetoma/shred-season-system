@@ -5,6 +5,7 @@ import { SubmitButton } from "./SubmitButton";
 
 type DailyLogFormProps = {
   defaultValues?: Partial<DailyLog>;
+  submitLabel?: string;
 };
 
 type FieldProps = {
@@ -27,8 +28,10 @@ function Field({
   suffix,
 }: FieldProps) {
   return (
-    <label className="space-y-2">
-      <span className="text-sm font-medium text-[var(--foreground)]">{label}</span>
+    <label className="space-y-3">
+      <span className="type-eyebrow">
+        {label}
+      </span>
       <div className="relative">
         <input
           id={id}
@@ -38,10 +41,10 @@ function Field({
           min={min}
           defaultValue={defaultValue}
           required
-          className="w-full rounded-2xl border border-black/8 bg-white px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-black/20"
+          className="w-full rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-base text-[var(--foreground)] outline-none transition hover:border-[rgba(47,93,80,0.14)] focus:border-[var(--accent)] focus:bg-[var(--surface-strong)] focus:shadow-[0_0_0_3px_rgba(47,93,80,0.07)]"
         />
         {suffix ? (
-          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
+          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--muted)]">
             {suffix}
           </span>
         ) : null}
@@ -50,10 +53,13 @@ function Field({
   );
 }
 
-export function DailyLogForm({ defaultValues }: DailyLogFormProps) {
+export function DailyLogForm({
+  defaultValues,
+  submitLabel = "Log Today",
+}: DailyLogFormProps) {
   return (
-    <form action={saveDailyLog} className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form action={saveDailyLog} className="space-y-7">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <Field
           id="date"
           label="Log date"
@@ -65,35 +71,35 @@ export function DailyLogForm({ defaultValues }: DailyLogFormProps) {
           label="Weight"
           step="0.1"
           min="0"
-          defaultValue={defaultValues?.weight ?? 241.4}
+          defaultValue={defaultValues?.weight}
           suffix="lb"
         />
         <Field
           id="calories"
           label="Calories"
           min="0"
-          defaultValue={defaultValues?.calories ?? 2100}
+          defaultValue={defaultValues?.calories}
           suffix="kcal"
         />
         <Field
           id="protein"
           label="Protein"
           min="0"
-          defaultValue={defaultValues?.protein ?? 185}
+          defaultValue={defaultValues?.protein}
           suffix="g"
         />
         <Field
           id="steps"
           label="Steps"
           min="0"
-          defaultValue={defaultValues?.steps ?? 10000}
+          defaultValue={defaultValues?.steps}
         />
         <Field
           id="water"
           label="Water"
           step="0.1"
           min="0"
-          defaultValue={defaultValues?.water ?? 3.5}
+          defaultValue={defaultValues?.water}
           suffix="L"
         />
         <Field
@@ -101,42 +107,46 @@ export function DailyLogForm({ defaultValues }: DailyLogFormProps) {
           label="Fasting hours"
           step="0.5"
           min="0"
-          defaultValue={defaultValues?.fastingHours ?? 15}
+          defaultValue={defaultValues?.fastingHours}
           suffix="hrs"
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-3 rounded-2xl border border-black/8 bg-black/[0.02] px-4 py-3">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="flex items-center justify-between gap-3 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-4 transition hover:border-[rgba(47,93,80,0.14)] hover:bg-[rgba(237,243,240,0.6)]">
+          <span className="text-sm font-medium text-[var(--foreground)]">
+            Stayed on plan
+          </span>
           <input
             type="checkbox"
             name="stayedOnPlan"
             defaultChecked={defaultValues?.stayedOnPlan ?? false}
-            className="h-4 w-4 rounded border-black/15"
+            className="h-4 w-4 rounded border-[var(--border-strong)] accent-[var(--accent)]"
           />
-          <span className="text-sm font-medium text-[var(--foreground)]">
-            Stayed on plan
-          </span>
         </label>
-        <label className="flex items-center gap-3 rounded-2xl border border-black/8 bg-black/[0.02] px-4 py-3">
+        <label className="flex items-center justify-between gap-3 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-4 py-4 transition hover:border-[rgba(47,93,80,0.14)] hover:bg-[rgba(237,243,240,0.6)]">
+          <span className="text-sm font-medium text-[var(--foreground)]">
+            No night eating
+          </span>
           <input
             type="checkbox"
             name="noNightEating"
             defaultChecked={defaultValues?.noNightEating ?? false}
-            className="h-4 w-4 rounded border-black/15"
+            className="h-4 w-4 rounded border-[var(--border-strong)] accent-[var(--accent)]"
           />
-          <span className="text-sm font-medium text-[var(--foreground)]">
-            No night eating
-          </span>
         </label>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-6 text-[var(--muted)]">
-          Submitting the same date again overwrites that day&apos;s entry. Keep it
-          factual and keep it daily.
-        </p>
-        <SubmitButton label="Save daily log" />
+      <div className="section-divider flex flex-col gap-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="type-eyebrow">
+            One entry per date
+          </p>
+          <p className="text-sm leading-6 text-[var(--secondary)]">
+            Logging the same date again updates that day&apos;s record.
+          </p>
+        </div>
+        <SubmitButton label={submitLabel} />
       </div>
     </form>
   );

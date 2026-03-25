@@ -3,6 +3,7 @@ export const CALORIE_RANGE = {
   max: 2300,
 };
 
+export const GOAL_WEIGHT = 250;
 export const PROTEIN_GOAL = 180;
 export const STEPS_GOAL = 10_000;
 export const WEEKLY_TARGET_SCORE = 28;

@@ -29,6 +29,14 @@ function average(values: number[]) {
   return values.reduce((total, value) => total + value, 0) / values.length;
 }
 
+function averageOrNull(values: number[], minCount: number) {
+  if (values.length < minCount) {
+    return null;
+  }
+
+  return average(values);
+}
+
 export function attachScores(logs: DailyLog[]): ScoredLog[] {
   return logs.map((log) => {
     const breakdown = getScoreBreakdown(log);
@@ -69,11 +77,7 @@ export function buildRollingWindow(logs: ScoredLog[], days: number): RollingWind
 export function getSevenDayAverageWeight(logs: ScoredLog[]) {
   const recentWeights = logs.slice(-7).map((log) => log.weight);
 
-  if (recentWeights.length === 0) {
-    return null;
-  }
-
-  return average(recentWeights);
+  return averageOrNull(recentWeights, 7);
 }
 
 export function getStreak(logs: ScoredLog[], minimumScore = 4) {
@@ -130,8 +134,9 @@ export function getBestStreak(logs: ScoredLog[], minimumScore = 4) {
 export function getDangerAlert(logs: ScoredLog[]) {
   const window = buildRollingWindow(logs, DANGER_LOOKBACK_DAYS);
   const lowDays = window.filter((entry) => entry.score <= LOW_SCORE_THRESHOLD);
+  const lowScoreStreak = getLowScoreStreak(logs);
 
-  if (lowDays.length < DANGER_LOW_SCORE_DAYS) {
+  if (lowDays.length < DANGER_LOW_SCORE_DAYS && lowScoreStreak < 2) {
     return null;
   }
 
@@ -141,27 +146,64 @@ export function getDangerAlert(logs: ScoredLog[]) {
     threshold: LOW_SCORE_THRESHOLD,
     averageScore: average(window.map((entry) => entry.score)),
     latestLowDate: lowDays.at(-1)?.date ?? window.at(-1)?.date ?? "",
+    lowScoreStreak,
+    message:
+      lowScoreStreak >= 2
+        ? `${lowScoreStreak} low-score days in a row`
+        : `${lowDays.length} low-score days in the last ${DANGER_LOOKBACK_DAYS} days`,
   };
+}
+
+export function getLowScoreStreak(logs: ScoredLog[], threshold = LOW_SCORE_THRESHOLD) {
+  const descending = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+  let streak = 0;
+
+  for (const [index, log] of descending.entries()) {
+    if (log.score > threshold) {
+      break;
+    }
+
+    if (index > 0) {
+      const previousDate = parseISO(descending[index - 1].date);
+      const currentDate = parseISO(log.date);
+
+      if (differenceInCalendarDays(previousDate, currentDate) !== 1) {
+        break;
+      }
+    }
+
+    streak += 1;
+  }
+
+  return streak;
 }
 
 export function getWeeklySummary(logs: ScoredLog[]) {
   const window = buildRollingWindow(logs, 7);
   const loggedEntries = window.flatMap((entry) => (entry.log ? [entry.log] : []));
   const totalScore = window.reduce((sum, entry) => sum + entry.score, 0);
+  const hasEnoughEntriesForWeek = loggedEntries.length >= 7;
   const weightChange =
     loggedEntries.length >= 2
       ? loggedEntries.at(-1)!.weight - loggedEntries[0].weight
-      : 0;
+      : null;
 
   return {
     totalScore,
     targetScore: WEEKLY_TARGET_SCORE,
     goalCompletionPercent: Math.min((totalScore / WEEKLY_TARGET_SCORE) * 100, 100),
-    consistencyPercent: (totalScore / 35) * 100,
-    averageCalories: average(loggedEntries.map((entry) => entry.calories)),
-    averageSteps: average(loggedEntries.map((entry) => entry.steps)),
+    consistencyPercent: hasEnoughEntriesForWeek ? (totalScore / 35) * 100 : null,
+    averageCalories: averageOrNull(
+      loggedEntries.map((entry) => entry.calories),
+      7,
+    ),
+    averageSteps: averageOrNull(
+      loggedEntries.map((entry) => entry.steps),
+      7,
+    ),
     weightChange,
     daysCompleted: loggedEntries.length,
+    hasEnoughEntriesForWeek,
     habitHitRates: {
       caloriesInRange: loggedEntries.filter((entry) => entry.breakdown.caloriesInRange)
         .length,
@@ -180,7 +222,10 @@ export function buildWeightChartData(logs: ScoredLog[]) {
     return {
       date: format(parseISO(log.date), "MMM d"),
       weight: Number(log.weight.toFixed(1)),
-      sevenDayAverage: Number(average(slice.map((entry) => entry.weight)).toFixed(1)),
+      sevenDayAverage:
+        slice.length >= 7
+          ? Number(average(slice.map((entry) => entry.weight)).toFixed(1))
+          : null,
     };
   });
 }
@@ -194,14 +239,14 @@ export function buildCalorieChartData(logs: ScoredLog[]) {
 
 export function getThirtyDayWeightChange(logs: ScoredLog[]) {
   if (logs.length < 2) {
-    return 0;
+    return null;
   }
 
   const windowStart = format(subDays(new Date(), 29), "yyyy-MM-dd");
   const window = logs.filter((log) => log.date >= windowStart);
 
   if (window.length < 2) {
-    return 0;
+    return null;
   }
 
   return window.at(-1)!.weight - window[0].weight;

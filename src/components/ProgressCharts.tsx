@@ -2,7 +2,9 @@
 
 import dynamic from "next/dynamic";
 
-const chartSkeleton = () => <div className="h-80 w-full rounded-[28px] bg-black/[0.03]" />;
+const chartSkeleton = () => (
+  <div className="h-80 w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface)]" />
+);
 
 const WeightChart = dynamic(
   () => import("@/components/WeightChart").then((mod) => mod.WeightChart),
@@ -23,7 +25,7 @@ const CalorieChart = dynamic(
 type WeightChartDatum = {
   date: string;
   weight: number;
-  sevenDayAverage: number;
+  sevenDayAverage: number | null;
 };
 
 type CalorieChartDatum = {

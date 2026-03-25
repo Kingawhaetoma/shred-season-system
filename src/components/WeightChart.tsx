@@ -14,7 +14,7 @@ import {
 type WeightChartDatum = {
   date: string;
   weight: number;
-  sevenDayAverage: number;
+  sevenDayAverage: number | null;
 };
 
 type WeightChartProps = {
@@ -26,33 +26,33 @@ export function WeightChart({ data }: WeightChartProps) {
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 12, right: 8, left: -14, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(19,32,47,0.08)" vertical={false} />
+          <CartesianGrid stroke="#E7DFD6" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fill: "rgba(95,103,114,1)", fontSize: 12 }}
+            tick={{ fill: "#9A948C", fontSize: 12 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            tick={{ fill: "rgba(95,103,114,1)", fontSize: 12 }}
+            tick={{ fill: "#9A948C", fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             domain={["dataMin - 1", "dataMax + 1"]}
           />
           <Tooltip
-            cursor={{ stroke: "rgba(19,32,47,0.12)", strokeWidth: 1 }}
+            cursor={{ stroke: "#E7DFD6", strokeWidth: 1 }}
             contentStyle={{
-              borderRadius: "18px",
-              border: "1px solid rgba(19,32,47,0.08)",
-              background: "rgba(255,255,255,0.96)",
-              boxShadow: "0 24px 80px rgba(19,32,47,0.08)",
+              borderRadius: "12px",
+              border: "1px solid #E7DFD6",
+              background: "#FBFAF7",
+              boxShadow: "0 8px 18px rgba(17,17,17,0.05)",
             }}
           />
-          <Legend />
+          <Legend wrapperStyle={{ color: "#6B6B6B" }} />
           <Line
             type="monotone"
             dataKey="weight"
-            stroke="rgba(19,32,47,0.7)"
+            stroke="#111111"
             strokeWidth={2.5}
             dot={{ r: 2 }}
             activeDot={{ r: 4 }}
@@ -61,7 +61,7 @@ export function WeightChart({ data }: WeightChartProps) {
           <Line
             type="monotone"
             dataKey="sevenDayAverage"
-            stroke="rgba(31,122,78,1)"
+            stroke="#2F5D50"
             strokeWidth={3}
             dot={false}
             activeDot={{ r: 4 }}

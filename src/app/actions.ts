@@ -40,9 +40,13 @@ export async function saveDailyLog(formData: FormData) {
     where: { date },
     create: {
       date,
+      isSample: false,
       ...values,
     },
-    update: values,
+    update: {
+      ...values,
+      isSample: false,
+    },
   });
 
   revalidatePath("/");

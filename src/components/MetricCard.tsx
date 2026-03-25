@@ -9,10 +9,10 @@ type MetricCardProps = {
 };
 
 const accentClasses = {
-  neutral: "border-black/8",
-  success: "border-emerald-900/10",
-  warning: "border-amber-900/10",
-  danger: "border-rose-900/10",
+  neutral: "border-[var(--border)]",
+  success: "border-[var(--border)] bg-[var(--accent-soft)]",
+  warning: "border-[var(--border)] bg-[var(--warning-soft)]",
+  danger: "border-[var(--border)] bg-[var(--warning-soft)]",
 } satisfies Record<NonNullable<MetricCardProps["accent"]>, string>;
 
 export function MetricCard({
@@ -35,7 +35,7 @@ export function MetricCard({
         </p>
       ) : null}
       {children}
-      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{subtitle}</p>
+      <p className="mt-3 text-sm leading-6 text-[var(--secondary)]">{subtitle}</p>
     </section>
   );
 }

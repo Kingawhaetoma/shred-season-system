@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LazyCalorieChart, LazyWeightChart } from "@/components/ProgressCharts";
-import { MetricCard } from "@/components/MetricCard";
+import { GOAL_WEIGHT } from "@/lib/constants";
 import { getAllLogs } from "@/lib/data";
 import {
   attachScores,
@@ -14,7 +14,7 @@ import {
 import { formatSignedWeight, formatWeight } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Progress",
+  title: "Trajectory",
 };
 
 export default async function ProgressPage() {
@@ -25,108 +25,126 @@ export default async function ProgressPage() {
   const averageWeight = getSevenDayAverageWeight(logs);
   const thirtyDayChange = getThirtyDayWeightChange(logs);
   const bestStreak = getBestStreak(logs);
+  const hasEnoughWeightData = weightChartData.length >= 2;
+  const hasEnoughCalorieData = calorieChartData.length >= 2;
 
   return (
-    <div className="space-y-6">
-      <section className="glass-card rounded-[32px] px-6 py-7 sm:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-          Progress page
-        </p>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
-              See the trend, not the mood.
-            </h1>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
-              Weight moves slowly. Consistency moves daily. This view keeps both in
-              frame so you can stay objective.
+    <div className="space-y-8 lg:space-y-10">
+      <section className="glass-card rounded-[28px] px-6 py-8 sm:px-8 sm:py-10">
+        <div className="space-y-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--muted)]">
+            Trajectory
+          </p>
+          <h1 className="text-5xl font-semibold tracking-[-0.07em] text-[var(--foreground)] sm:text-6xl">
+            Recorded trajectory
+          </h1>
+          <p className="max-w-2xl text-base leading-8 text-[var(--secondary)] sm:text-lg">
+            The system reads only recorded weigh-ins and intake. If the dataset is
+            thin, it waits rather than inventing a trend.
+          </p>
+        </div>
+
+        <div className="section-divider mt-8 grid gap-8 pt-8 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="space-y-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
+              Current weight
             </p>
+            <p className="font-mono text-5xl font-semibold tracking-[-0.08em] text-[var(--foreground)] sm:text-6xl">
+              {currentWeight !== null ? formatWeight(currentWeight) : "Not enough data yet"}
+            </p>
+            <p className="text-sm text-[var(--secondary)]">Latest recorded weigh-in.</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
+              Goal weight
+            </p>
+            <p className="font-mono text-5xl font-semibold tracking-[-0.08em] text-[var(--foreground)] sm:text-6xl">
+              {formatWeight(GOAL_WEIGHT)}
+            </p>
+            <p className="text-sm text-[var(--secondary)]">Operating target.</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
+              7-day average
+            </p>
+            <p className="font-mono text-5xl font-semibold tracking-[-0.08em] text-[var(--foreground)] sm:text-6xl">
+              {averageWeight !== null ? formatWeight(averageWeight) : "Not enough data yet"}
+            </p>
+            <p className="text-sm text-[var(--secondary)]">Needs 7 real weigh-ins.</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
+              30-day change
+            </p>
+            <p className="font-mono text-5xl font-semibold tracking-[-0.08em] text-[var(--foreground)] sm:text-6xl">
+              {thirtyDayChange !== null
+                ? formatSignedWeight(thirtyDayChange)
+                : "Not enough data yet"}
+            </p>
+            <p className="text-sm text-[var(--secondary)]">Needs at least 2 real weigh-ins.</p>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Current weight"
-          value={currentWeight ? formatWeight(currentWeight) : "--"}
-          subtitle="Latest recorded weigh-in."
-        />
-        <MetricCard
-          title="7-day average"
-          value={averageWeight ? formatWeight(averageWeight) : "--"}
-          subtitle="Smoothed trend across the last seven weigh-ins."
-          accent="success"
-        />
-        <MetricCard
-          title="30-day change"
-          value={formatSignedWeight(thirtyDayChange)}
-          subtitle="Weight change across the last 30 logged days."
-          accent={thirtyDayChange <= 0 ? "success" : "warning"}
-        />
-        <MetricCard
-          title="Best streak"
-          value={`${bestStreak} days`}
-          subtitle="Longest run of 4/5 days or better."
-          accent="warning"
-        />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="panel-card rounded-[32px] p-6 sm:p-7">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-                Weight trend
+      <section className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+        <section className="panel-card rounded-[24px] px-6 py-7 sm:px-8 sm:py-8">
+          <div className="border-b border-[var(--border)] pb-6">
+            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--muted)]">
+              Scale record
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--foreground)]">
+              Scale weight and rolling average
+            </h2>
+          </div>
+          <div className="mt-8">
+            {hasEnoughWeightData ? (
+              <LazyWeightChart data={weightChartData} />
+            ) : (
+              <p className="text-sm leading-7 text-[var(--secondary)]">
+                Not enough data yet.
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                Scale weight and 7-day average
-              </h2>
-            </div>
+            )}
           </div>
-          <div className="mt-6">
-            <LazyWeightChart data={weightChartData} />
-          </div>
-        </div>
+        </section>
 
-        <div className="panel-card rounded-[32px] p-6 sm:p-7">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-              Read the chart
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-              What matters here
-            </h2>
-          </div>
-          <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--muted)]">
+        <section className="panel-card rounded-[24px] px-6 py-7 sm:px-8 sm:py-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--muted)]">
+            Readout
+          </p>
+          <div className="mt-6 space-y-5 text-sm leading-7 text-[var(--secondary)]">
             <p>
-              Use the raw weight line to stay honest, but let the 7-day average tell
-              you whether the cut is actually working.
+              The raw line keeps the record honest. The rolling average confirms
+              direction once the dataset is deep enough.
             </p>
             <p>
-              Short spikes from sodium, stress, or a big meal are noise. Repeated
-              high-calorie days paired with a flat average are signal.
+              Single spikes are noise. Repeated drift with weak adherence is the
+              signal.
             </p>
             <p>
-              If the average stalls, tighten the variables you control first:
-              calories, protein floor, and daily movement.
+              Best streak on record: {bestStreak} day{bestStreak === 1 ? "" : "s"}.
             </p>
           </div>
-        </div>
+        </section>
       </section>
 
-      <section className="panel-card rounded-[32px] p-6 sm:p-7">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.32em] text-[var(--muted)]">
-              Calorie trend
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-              Intake against the target range
-            </h2>
-          </div>
+      <section className="panel-card rounded-[24px] px-6 py-7 sm:px-8 sm:py-8">
+        <div className="border-b border-[var(--border)] pb-6">
+          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--muted)]">
+            Intake record
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--foreground)]">
+            Intake against plan range
+          </h2>
         </div>
-        <div className="mt-6">
-          <LazyCalorieChart data={calorieChartData} />
+        <div className="mt-8">
+          {hasEnoughCalorieData ? (
+            <LazyCalorieChart data={calorieChartData} />
+          ) : (
+            <p className="text-sm leading-7 text-[var(--secondary)]">Not enough data yet.</p>
+          )}
         </div>
       </section>
     </div>
